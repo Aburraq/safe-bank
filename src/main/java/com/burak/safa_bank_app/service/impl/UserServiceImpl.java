@@ -115,7 +115,7 @@ public class UserServiceImpl implements UserService {
         User userToCredit = userRepository.findByAccountNumber(creditDebitRequest.getAccountNumber());
 
         userToCredit.setAccountBalance(userToCredit.getAccountBalance().add(creditDebitRequest.getAmount()));
-
+        userRepository.save(userToCredit);
         EmailDetails emailDetails = EmailDetails.builder()
                 .recipient(userToCredit.getEmail())
                 .subject("BALANCE ADDED")
@@ -134,5 +134,55 @@ public class UserServiceImpl implements UserService {
                         .accountNumber(userToCredit.getAccountNumber())
                         .build())
                 .build();
+    }
+
+    @Override
+    public BankResponse debitAccount(CreditDebitRequest creditDebitRequest) {
+
+        boolean isAccountExist = userRepository.existsByAccountNumber(creditDebitRequest.getAccountNumber());
+        if (!isAccountExist){
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.ACCOUNT_NOT_EXIST_CODE)
+                    .responseMessage(String.format(AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE, creditDebitRequest.getAccountNumber()))
+                    .accountInfo(null)
+                    .build();
+        }
+
+        User userToDebit = userRepository.findByAccountNumber(creditDebitRequest.getAccountNumber());
+        if (userToDebit.getAccountBalance().subtract(creditDebitRequest.getAmount()).compareTo(BigDecimal.ZERO) < 0){
+
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.ACCOUNT_INSUFFICIENT_BALANCE_CODE)
+                    .responseMessage(String.format(AccountUtils.ACCOUNT_INSUFFICIENT_BALANCE_MESSAGE, creditDebitRequest.getAmount()))
+                    .accountInfo(AccountInfo.builder()
+                            .accountNumber(userToDebit.getAccountNumber())
+                            .accountBalance(userToDebit.getAccountBalance())
+                            .accountName(userToDebit.getFirstName() + " " + userToDebit.getLastName() + " " + userToDebit.getOtherName())
+                            .build())
+                    .build();
+        } else {
+            userToDebit.setAccountBalance(userToDebit.getAccountBalance().subtract(creditDebitRequest.getAmount()));
+            userRepository.save(userToDebit);
+            EmailDetails emailDetails = EmailDetails.builder()
+                    .recipient(userToDebit.getEmail())
+                    .subject("WITHDRAW OPERATION IS DONE SUCCESSFULLY")
+                    .messageBody("")
+                    .messageBody(creditDebitRequest.getAmount() + " of credit is withdrawn from your account! " +
+                            "Check out latest deals. \n Your account details: \n" +
+                            "Account name: " + userToDebit.getFirstName() + " " + userToDebit.getLastName() + " " + userToDebit.getOtherName() +"\n"
+                            + "Account number: " + userToDebit.getAccountNumber())
+                    .build();
+            emailService.sendEmailAlert(emailDetails);
+
+             return BankResponse.builder()
+                    .responseCode(AccountUtils.ACCOUNT_WITHDRAW_SUCCESS_CODE)
+                    .responseMessage(String.format(AccountUtils.ACCOUNT_WITHDRAW_SUCCESS_MESSAGE, creditDebitRequest.getAmount()))
+                    .accountInfo(AccountInfo.builder()
+                            .accountNumber(userToDebit.getAccountNumber())
+                            .accountBalance(userToDebit.getAccountBalance())
+                            .accountName(userToDebit.getFirstName() + " " + userToDebit.getLastName() + " " + userToDebit.getOtherName())
+                            .build())
+                    .build();
+        }
     }
 }

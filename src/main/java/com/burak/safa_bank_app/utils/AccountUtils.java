@@ -1,7 +1,6 @@
 package com.burak.safa_bank_app.utils;
 
 import java.time.Year;
-import java.util.Random;
 
 public class AccountUtils {
 
@@ -18,6 +17,12 @@ public class AccountUtils {
 
     public static final String ACCOUNT_CREDITED_SUCCESS_CODE = "005";
     public static final String ACCOUNT_CREDITED_SUCCESS_MESSAGE = "%s amount of credit is added successfully!";
+
+    public static final String ACCOUNT_INSUFFICIENT_BALANCE_CODE = "006";
+    public static final String ACCOUNT_INSUFFICIENT_BALANCE_MESSAGE = "Insufficient balance: %s amount is more than your balance!";
+
+    public static final String ACCOUNT_WITHDRAW_SUCCESS_CODE = "007";
+    public static final String ACCOUNT_WITHDRAW_SUCCESS_MESSAGE = "%s amount of credit is withdrawn successfully!";
 
 
     public static String generateAccountNumber(){
