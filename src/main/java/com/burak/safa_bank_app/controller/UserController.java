@@ -1,6 +1,7 @@
 package com.burak.safa_bank_app.controller;
 
 import com.burak.safa_bank_app.dto.BankResponse;
+import com.burak.safa_bank_app.dto.CreditDebitRequest;
 import com.burak.safa_bank_app.dto.EnquiryRequest;
 import com.burak.safa_bank_app.dto.UserRequest;
 import com.burak.safa_bank_app.service.impl.UserService;
@@ -27,5 +28,10 @@ public class UserController {
     @GetMapping("/nameEnquiry")
     public String nameEnquiry(@RequestBody EnquiryRequest enquiryRequest){
         return userService.nameEnquiry(enquiryRequest);
+    }
+
+    @PostMapping("/credit")
+    public BankResponse creditAccount(@RequestBody CreditDebitRequest creditDebitRequest){
+        return userService.creditAccount(creditDebitRequest);
     }
 }
