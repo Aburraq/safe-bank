@@ -16,6 +16,8 @@ public class UserServiceImpl implements UserService {
     UserRepository userRepository;
     @Autowired
     EmailService emailService;
+    @Autowired
+    TransactionService transactionService;
     @Override
     public BankResponse createAccount(UserRequest userRequest) {
 
@@ -116,6 +118,15 @@ public class UserServiceImpl implements UserService {
 
         userToCredit.setAccountBalance(userToCredit.getAccountBalance().add(creditDebitRequest.getAmount()));
         userRepository.save(userToCredit);
+
+        TransactionRequest transactionRequest = TransactionRequest.builder()
+                .accountNumber(userToCredit.getAccountNumber())
+                .transactionType("DEPOSIT")
+                .amount(creditDebitRequest.getAmount())
+                .build();
+
+        transactionService.saveTransaction(transactionRequest);
+
         EmailDetails emailDetails = EmailDetails.builder()
                 .recipient(userToCredit.getEmail())
                 .subject("BALANCE ADDED")
@@ -163,6 +174,15 @@ public class UserServiceImpl implements UserService {
         } else {
             userToDebit.setAccountBalance(userToDebit.getAccountBalance().subtract(creditDebitRequest.getAmount()));
             userRepository.save(userToDebit);
+
+            TransactionRequest transactionRequest = TransactionRequest.builder()
+                    .accountNumber(userToDebit.getAccountNumber())
+                    .transactionType("DEPOSIT")
+                    .amount(creditDebitRequest.getAmount())
+                    .build();
+
+            transactionService.saveTransaction(transactionRequest);
+
             EmailDetails emailDetails = EmailDetails.builder()
                     .recipient(userToDebit.getEmail())
                     .subject("WITHDRAW OPERATION IS DONE SUCCESSFULLY")
@@ -227,6 +247,21 @@ public class UserServiceImpl implements UserService {
             userRepository.save(senderUser);
             userRepository.save(recieverUser);
 
+            TransactionRequest transactionRequest = TransactionRequest.builder()
+                    .accountNumber(senderUser.getAccountNumber())
+                    .transactionType("TRANSFER")
+                    .amount(transferRequest.getAmount())
+                    .build();
+
+            transactionService.saveTransaction(transactionRequest);
+
+            TransactionRequest transactionRequest2 = TransactionRequest.builder()
+                    .accountNumber(recieverUser.getAccountNumber())
+                    .transactionType("TRANSFER")
+                    .amount(transferRequest.getAmount())
+                    .build();
+
+            transactionService.saveTransaction(transactionRequest2);
 
             EmailDetails emailDetails = EmailDetails.builder()
                     .recipient(senderUser.getEmail())

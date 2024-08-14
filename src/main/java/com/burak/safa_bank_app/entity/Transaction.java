@@ -15,7 +15,7 @@ import java.math.BigDecimal;
 public class Transaction {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String transactionId;
     private String transactionType;
     private BigDecimal amount;
