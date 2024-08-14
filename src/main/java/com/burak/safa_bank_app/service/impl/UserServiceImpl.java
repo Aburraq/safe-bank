@@ -185,4 +185,74 @@ public class UserServiceImpl implements UserService {
                     .build();
         }
     }
+
+    @Override
+    public BankResponse transfer(TransferRequest transferRequest) {
+
+        boolean isSourceAccountExist = userRepository.existsByAccountNumber(transferRequest.getSourceAccountNumber());
+        boolean isDestinationAccountExist = userRepository.existsByAccountNumber(transferRequest.getDestinationAccountNumber());
+
+        if (!isSourceAccountExist){
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.ACCOUNT_NOT_EXIST_CODE)
+                    .responseMessage(String.format(AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE, transferRequest.getSourceAccountNumber()))
+                    .accountInfo(null)
+                    .build();
+        }
+        if (!isDestinationAccountExist){
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.ACCOUNT_NOT_EXIST_CODE)
+                    .responseMessage(String.format(AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE, transferRequest.getDestinationAccountNumber()))
+                    .accountInfo(null)
+                    .build();
+        }
+
+        User senderUser = userRepository.findByAccountNumber(transferRequest.getSourceAccountNumber());
+        User recieverUser = userRepository.findByAccountNumber(transferRequest.getDestinationAccountNumber());
+
+        if (senderUser.getAccountBalance().subtract(transferRequest.getAmount()).compareTo(BigDecimal.ZERO) < 0){
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.ACCOUNT_INSUFFICIENT_BALANCE_CODE)
+                    .responseMessage(String.format(AccountUtils.ACCOUNT_INSUFFICIENT_BALANCE_MESSAGE, transferRequest.getAmount()))
+                    .accountInfo(AccountInfo.builder()
+                            .accountNumber(senderUser.getAccountNumber())
+                            .accountBalance(senderUser.getAccountBalance())
+                            .accountName(senderUser.getFirstName() + " " + senderUser.getLastName() + " " + senderUser.getOtherName())
+                            .build())
+                    .build();
+
+        } else {
+            senderUser.setAccountBalance(senderUser.getAccountBalance().subtract(transferRequest.getAmount()));
+            recieverUser.setAccountBalance(recieverUser.getAccountBalance().add(transferRequest.getAmount()));
+            userRepository.save(senderUser);
+            userRepository.save(recieverUser);
+
+
+            EmailDetails emailDetails = EmailDetails.builder()
+                    .recipient(senderUser.getEmail())
+                    .subject("TRANSFER IS DONE SUCCESSFULLY")
+                    .messageBody("Your " + transferRequest.getAmount() + " amount of transaction is sent to " + recieverUser.getAccountNumber() + " account number successfully!")
+                    .build();
+
+            EmailDetails emailDetails2 = EmailDetails.builder()
+                    .recipient(recieverUser.getEmail())
+                    .subject("TRANSFER ARRIVED SUCCESSFULLY")
+                    .messageBody("You have received " + transferRequest.getAmount() + " amount to your deposit from " + senderUser.getAccountNumber() + " account number successfully!" +
+                            "\n Use it for good days.")
+                    .build();
+
+            emailService.sendEmailAlert(emailDetails);
+            emailService.sendEmailAlert(emailDetails2);
+
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.ACCOUNT_TRANSFER_SUCCESS_CODE)
+                    .responseMessage(String.format(AccountUtils.ACCOUNT_TRANSFER_SUCCESS_MESSAGE, transferRequest.getAmount()))
+                    .accountInfo(AccountInfo.builder()
+                            .accountNumber(senderUser.getAccountNumber())
+                            .accountBalance(senderUser.getAccountBalance())
+                            .accountName(senderUser.getFirstName() + " " + senderUser.getLastName() + " " + senderUser.getOtherName())
+                            .build())
+                    .build();
+        }
+    }
 }

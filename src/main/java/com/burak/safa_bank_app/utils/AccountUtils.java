@@ -24,6 +24,9 @@ public class AccountUtils {
     public static final String ACCOUNT_WITHDRAW_SUCCESS_CODE = "007";
     public static final String ACCOUNT_WITHDRAW_SUCCESS_MESSAGE = "%s amount of credit is withdrawn successfully!";
 
+    public static final String ACCOUNT_TRANSFER_SUCCESS_CODE = "008";
+    public static final String ACCOUNT_TRANSFER_SUCCESS_MESSAGE = "%s amount of credit is transferred successfully!";
+
 
     public static String generateAccountNumber(){
         Year currentYear = Year.now();

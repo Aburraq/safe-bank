@@ -1,9 +1,6 @@
 package com.burak.safa_bank_app.controller;
 
-import com.burak.safa_bank_app.dto.BankResponse;
-import com.burak.safa_bank_app.dto.CreditDebitRequest;
-import com.burak.safa_bank_app.dto.EnquiryRequest;
-import com.burak.safa_bank_app.dto.UserRequest;
+import com.burak.safa_bank_app.dto.*;
 import com.burak.safa_bank_app.service.impl.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -38,5 +35,10 @@ public class UserController {
     @PostMapping("/withdraw")
     public BankResponse debitAccount(@RequestBody CreditDebitRequest creditDebitRequest){
         return userService.debitAccount(creditDebitRequest);
+    }
+
+    @PostMapping("/transfer")
+    public BankResponse transfer(@RequestBody TransferRequest transferRequest){
+        return userService.transfer(transferRequest);
     }
 }
