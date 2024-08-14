@@ -21,6 +21,7 @@ public class EmailServiceImpl implements EmailService{
     public void sendEmailAlert(EmailDetails emailDetails) {
         try {
             SimpleMailMessage mailMessage = new SimpleMailMessage();
+
             mailMessage.setFrom(senderEmail);
             mailMessage.setTo(emailDetails.getRecipient());
             mailMessage.setText(emailDetails.getMessageBody());
