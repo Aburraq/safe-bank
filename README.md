@@ -47,6 +47,6 @@ spring.mail.password=appPassword - you can get from gmail app passwords
 ```
 
 ## Contact
-For any questions or inquiries, please contact Burak(https://github.com/Aburraq).
+For any questions or inquiries, please contact Burak (https://github.com/Aburraq).
 
 
