@@ -2,6 +2,7 @@ package com.burak.safa_bank_app.controller;
 
 import com.burak.safa_bank_app.dto.*;
 import com.burak.safa_bank_app.service.impl.UserService;
+import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +16,11 @@ public class UserController {
     @PostMapping
     public BankResponse createAccount(@RequestBody UserRequest userRequest){
         return userService.createAccount(userRequest);
+    }
+
+    @PostMapping("/login")
+    public BankResponse login(@RequestBody LoginDto loginDto){
+        return  userService.login(loginDto);
     }
 
     @GetMapping("/balanceEnquiry")

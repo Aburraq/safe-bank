@@ -1,10 +1,17 @@
 package com.burak.safa_bank_app.service.impl;
 
+import com.burak.safa_bank_app.config.JwtTokenProvider;
+import com.burak.safa_bank_app.config.SecurityConfig;
 import com.burak.safa_bank_app.dto.*;
+import com.burak.safa_bank_app.entity.Role;
 import com.burak.safa_bank_app.entity.User;
 import com.burak.safa_bank_app.repository.UserRepository;
 import com.burak.safa_bank_app.utils.AccountUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -18,6 +25,16 @@ public class UserServiceImpl implements UserService {
     EmailService emailService;
     @Autowired
     TransactionService transactionService;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
+    @Autowired
+    AuthenticationManager authenticationManager;
+
+    @Autowired
+    JwtTokenProvider jwtTokenProvider;
+
     @Override
     public BankResponse createAccount(UserRequest userRequest) {
 
@@ -39,9 +56,11 @@ public class UserServiceImpl implements UserService {
                 .accountNumber(AccountUtils.generateAccountNumber())
                 .accountBalance(BigDecimal.ZERO)
                 .email(userRequest.getEmail())
+                .password(passwordEncoder.encode(userRequest.getPassword()))
                 .phoneNumber(userRequest.getPhoneNumber())
                 .alternativePhoneNumber(userRequest.getAlternativePhoneNumber())
                 .status("ACTIVE")
+                .role(Role.ROLE_ADMIN)
                 .build();
 
         User savedUser = userRepository.save(newUser);
@@ -53,6 +72,7 @@ public class UserServiceImpl implements UserService {
                         "Account name: " + savedUser.getFirstName() + " " + savedUser.getLastName() + " " + savedUser.getOtherName() +"\n"
                 + "Account number: " + savedUser.getAccountNumber())
                 .build();
+
         emailService.sendEmailAlert(emailDetails);
 
         return BankResponse.builder()
@@ -63,6 +83,24 @@ public class UserServiceImpl implements UserService {
                         .accountNumber(savedUser.getAccountNumber())
                         .accountName(savedUser.getFirstName()+ " " + savedUser.getLastName() + " " + savedUser.getOtherName())
                         .build())
+                .build();
+    }
+
+    public BankResponse login(LoginDto loginDto){
+        Authentication authentication = null;
+        authentication =authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword())
+        );
+        EmailDetails loginAlert = EmailDetails.builder()
+                .subject("LOGGED IN")
+                .messageBody("Your have logged in your account. If it is not you please let us know.")
+                .recipient(loginDto.getEmail())
+                .build();
+
+        emailService.sendEmailAlert(loginAlert);
+        return BankResponse.builder()
+                .responseCode("Login Success")
+                .responseMessage(jwtTokenProvider.generateToken(authentication))
                 .build();
     }
 
